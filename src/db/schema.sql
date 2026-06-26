@@ -1,37 +1,32 @@
 -- InnoWebSrv Database Schema
--- Run once to create all tables: psql -d innospecs -f schema.sql
 
--- ─── Clients / Organizations ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS clients (
-  clt_id        SERIAL PRIMARY KEY,
-  clt_name      VARCHAR(100) NOT NULL,
-  clt_main_nb   VARCHAR(20),
-  clt_main800   VARCHAR(20),
-  clt_busHrs    VARCHAR(50),
-  clt_siteurl   VARCHAR(200),
-  clt_lang      VARCHAR(10) DEFAULT 'en',
-  clt_zone      INT DEFAULT 1,
-  clt_tc_lunch  INT DEFAULT 60,
-  pref_hrtick   INT DEFAULT 15,
-  pref_allowSRbill  BOOLEAN DEFAULT FALSE,
-  pref_flexSRtime   BOOLEAN DEFAULT FALSE,
-  pref_reqGeoLoc    BOOLEAN DEFAULT FALSE
+  clt_id           SERIAL PRIMARY KEY,
+  clt_name         VARCHAR(100) NOT NULL,
+  clt_main_nb      VARCHAR(20),
+  clt_main800      VARCHAR(20),
+  clt_busHrs       VARCHAR(50),
+  clt_siteurl      VARCHAR(200),
+  clt_lang         VARCHAR(10) DEFAULT 'en',
+  clt_zone         INT DEFAULT 1,
+  clt_tc_lunch     INT DEFAULT 60,
+  pref_hrtick      INT DEFAULT 15,
+  pref_allowSRbill BOOLEAN DEFAULT FALSE,
+  pref_flexSRtime  BOOLEAN DEFAULT FALSE,
+  pref_reqGeoLoc   BOOLEAN DEFAULT FALSE
 );
 
--- ─── Zones ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS zones (
   zone_id   SERIAL PRIMARY KEY,
   zone_name VARCHAR(50) NOT NULL
 );
 
--- ─── Categories (tech categories e.g. Biomedical, IT) ───────────────────────
 CREATE TABLE IF NOT EXISTS categories (
   cat_id   SERIAL PRIMARY KEY,
   cat_name VARCHAR(50) NOT NULL,
   clt_id   INT REFERENCES clients(clt_id)
 );
 
--- ─── Contacts (service engineers / users) ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS contacts (
   cnt_id    SERIAL PRIMARY KEY,
   clt_id    INT REFERENCES clients(clt_id),
@@ -46,16 +41,14 @@ CREATE TABLE IF NOT EXISTS contacts (
   is_active BOOLEAN DEFAULT TRUE
 );
 
--- ─── Labor types ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS labor_types (
-  lt_id    SERIAL PRIMARY KEY,
-  clt_id   INT REFERENCES clients(clt_id),
-  cat_id   INT REFERENCES categories(cat_id),
-  name     VARCHAR(80) NOT NULL,
-  opt      VARCHAR(20)
+  lt_id  SERIAL PRIMARY KEY,
+  clt_id INT REFERENCES clients(clt_id),
+  cat_id INT REFERENCES categories(cat_id),
+  name   VARCHAR(80) NOT NULL,
+  opt    VARCHAR(20)
 );
 
--- ─── Part origins / types ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS part_origins (
   po_id  SERIAL PRIMARY KEY,
   clt_id INT REFERENCES clients(clt_id),
@@ -68,24 +61,21 @@ CREATE TABLE IF NOT EXISTS part_types (
   name   VARCHAR(50)
 );
 
--- ─── Fees (linked labor fees) ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS fees (
-  fee_id   SERIAL PRIMARY KEY,
-  clt_id   INT REFERENCES clients(clt_id),
-  cat_id   INT REFERENCES categories(cat_id),
-  name     VARCHAR(80),
-  rate     NUMERIC(10,2),
-  link     CHAR(1) DEFAULT '0'
+  fee_id SERIAL PRIMARY KEY,
+  clt_id INT REFERENCES clients(clt_id),
+  cat_id INT REFERENCES categories(cat_id),
+  name   VARCHAR(80),
+  rate   NUMERIC(10,2),
+  link   CHAR(1) DEFAULT '0'
 );
 
--- ─── Time card entry types ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS tc_types (
-  tct_id  SERIAL PRIMARY KEY,
-  clt_id  INT REFERENCES clients(clt_id),
-  name    VARCHAR(50)
+  tct_id SERIAL PRIMARY KEY,
+  clt_id INT REFERENCES clients(clt_id),
+  name   VARCHAR(50)
 );
 
--- ─── Labor rates ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS labor_rates (
   lr_id       SERIAL PRIMARY KEY,
   clt_id      INT REFERENCES clients(clt_id),
@@ -95,7 +85,6 @@ CREATE TABLE IF NOT EXISTS labor_rates (
   rate_trvOT  NUMERIC(10,2) DEFAULT 0
 );
 
--- ─── Modalities (equipment types: MRI, Ultrasound, etc.) ────────────────────
 CREATE TABLE IF NOT EXISTS modalities (
   modal_id   SERIAL PRIMARY KEY,
   clt_id     INT REFERENCES clients(clt_id),
@@ -103,21 +92,18 @@ CREATE TABLE IF NOT EXISTS modalities (
   modal_name VARCHAR(80) NOT NULL
 );
 
--- ─── Makes (manufacturers) ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS makes (
   make_id   SERIAL PRIMARY KEY,
   clt_id    INT REFERENCES clients(clt_id),
   make_name VARCHAR(80) NOT NULL
 );
 
--- ─── Departments ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS departments (
   dept_id   SERIAL PRIMARY KEY,
   clt_id    INT REFERENCES clients(clt_id),
   dept_name VARCHAR(100) NOT NULL
 );
 
--- ─── Equipment ──────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS equipment (
   eqp_id      SERIAL PRIMARY KEY,
   clt_id      INT REFERENCES clients(clt_id),
@@ -131,7 +117,6 @@ CREATE TABLE IF NOT EXISTS equipment (
   is_active   BOOLEAN DEFAULT TRUE
 );
 
--- ─── Sub-equipment (components) ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sub_equipment (
   subeqp_id     SERIAL PRIMARY KEY,
   eqp_id        INT REFERENCES equipment(eqp_id),
@@ -141,7 +126,6 @@ CREATE TABLE IF NOT EXISTS sub_equipment (
   subeqp_main   BOOLEAN DEFAULT FALSE
 );
 
--- ─── Contracts / Coverage ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS contracts (
   cov_id      SERIAL PRIMARY KEY,
   clt_id      INT REFERENCES clients(clt_id),
@@ -152,7 +136,6 @@ CREATE TABLE IF NOT EXISTS contracts (
   cov_options VARCHAR(100)
 );
 
--- ─── PM Task templates ──────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS pm_tasks (
   pm_id      SERIAL PRIMARY KEY,
   modal_id   INT REFERENCES modalities(modal_id),
@@ -162,7 +145,6 @@ CREATE TABLE IF NOT EXISTS pm_tasks (
   pm_instr   TEXT
 );
 
--- ─── Tickets ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS tickets (
   tkt_id        SERIAL PRIMARY KEY,
   clt_id        INT REFERENCES clients(clt_id),
@@ -176,22 +158,20 @@ CREATE TABLE IF NOT EXISTS tickets (
   tkt_email     VARCHAR(150),
   tkt_phone     VARCHAR(20),
   tkt_po        VARCHAR(100),
-  tkt_status    SMALLINT DEFAULT 0,  -- 0=open, 1=closed, 9=voided
+  tkt_status    SMALLINT DEFAULT 0,
   has_pics      SMALLINT DEFAULT 0,
   created_by    INT REFERENCES contacts(cnt_id)
 );
 
--- ─── Ticket notifications ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ticket_notifications (
-  tn_id         SERIAL PRIMARY KEY,
-  tkt_id        INT REFERENCES tickets(tkt_id),
-  tn_item_start TIMESTAMP DEFAULT NOW(),
+  tn_id          SERIAL PRIMARY KEY,
+  tkt_id         INT REFERENCES tickets(tkt_id),
+  tn_item_start  TIMESTAMP DEFAULT NOW(),
   tn_item_status VARCHAR(20),
-  tn_item_usr   INT REFERENCES contacts(cnt_id),
-  tnif_stop     BOOLEAN DEFAULT FALSE
+  tn_item_usr    INT REFERENCES contacts(cnt_id),
+  tnif_stop      BOOLEAN DEFAULT FALSE
 );
 
--- ─── Ticket attachments ──────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ticket_pics (
   pic_id    SERIAL PRIMARY KEY,
   tkt_id    INT REFERENCES tickets(tkt_id),
@@ -199,52 +179,49 @@ CREATE TABLE IF NOT EXISTS ticket_pics (
   pic_title VARCHAR(200)
 );
 
--- ─── Parts inventory ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS parts (
-  part_id    SERIAL PRIMARY KEY,
-  clt_id     INT REFERENCES clients(clt_id),
-  tkt_id     INT REFERENCES tickets(tkt_id),
-  part_desc  VARCHAR(200),
-  part_numb  VARCHAR(100),
-  part_qty   NUMERIC(10,2) DEFAULT 1,
-  part_price NUMERIC(10,2) DEFAULT 0,
-  part_orig  VARCHAR(50),
-  part_cat   VARCHAR(50),
-  part_billed BOOLEAN DEFAULT FALSE,
+  part_id      SERIAL PRIMARY KEY,
+  clt_id       INT REFERENCES clients(clt_id),
+  tkt_id       INT REFERENCES tickets(tkt_id),
+  part_desc    VARCHAR(200),
+  part_numb    VARCHAR(100),
+  part_qty     NUMERIC(10,2) DEFAULT 1,
+  part_price   NUMERIC(10,2) DEFAULT 0,
+  part_orig    VARCHAR(50),
+  part_cat     VARCHAR(50),
+  part_billed  BOOLEAN DEFAULT FALSE,
   order_status VARCHAR(20) DEFAULT 'Ordered',
-  o_desc     VARCHAR(200),
-  o_number   VARCHAR(100),
-  o_qty      NUMERIC(10,2),
-  date_req   TIMESTAMP DEFAULT NOW(),
-  changed    BOOLEAN DEFAULT FALSE,
-  diff       BOOLEAN DEFAULT FALSE
+  o_desc       VARCHAR(200),
+  o_number     VARCHAR(100),
+  o_qty        NUMERIC(10,2),
+  date_req     TIMESTAMP DEFAULT NOW(),
+  changed      BOOLEAN DEFAULT FALSE,
+  diff         BOOLEAN DEFAULT FALSE
 );
 
--- ─── Service Reports ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS service_reports (
-  sr_id           SERIAL PRIMARY KEY,
-  tkt_id          INT REFERENCES tickets(tkt_id),
-  cnt_id          INT REFERENCES contacts(cnt_id),
-  sr_date         DATE DEFAULT CURRENT_DATE,
-  sr_repairs      TEXT,
-  sr_lab_rate     NUMERIC(10,2),
-  sr_billable     BOOLEAN DEFAULT FALSE,
-  sr_no_bill_rsn  TEXT,
-  sr_complete     BOOLEAN DEFAULT FALSE,
-  sr_sign_name    VARCHAR(100),
-  sr_sign         TEXT,
-  sr_po           VARCHAR(100),
-  sr_employees    TEXT,
-  sr_emails       TEXT,
-  sr_pm_tasks     TEXT,
-  sr_pic1         TEXT,
-  sr_pic2         TEXT,
-  sr_capt1        VARCHAR(200),
-  sr_capt2        VARCHAR(200),
-  created_at      TIMESTAMP DEFAULT NOW()
+  sr_id          SERIAL PRIMARY KEY,
+  tkt_id         INT REFERENCES tickets(tkt_id),
+  cnt_id         INT REFERENCES contacts(cnt_id),
+  sr_date        DATE DEFAULT CURRENT_DATE,
+  sr_repairs     TEXT,
+  sr_lab_rate    NUMERIC(10,2),
+  sr_billable    BOOLEAN DEFAULT FALSE,
+  sr_no_bill_rsn TEXT,
+  sr_complete    BOOLEAN DEFAULT FALSE,
+  sr_sign_name   VARCHAR(100),
+  sr_sign        TEXT,
+  sr_po          VARCHAR(100),
+  sr_employees   TEXT,
+  sr_emails      TEXT,
+  sr_pm_tasks    TEXT,
+  sr_pic1        TEXT,
+  sr_pic2        TEXT,
+  sr_capt1       VARCHAR(200),
+  sr_capt2       VARCHAR(200),
+  created_at     TIMESTAMP DEFAULT NOW()
 );
 
--- ─── SR Hours ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sr_hours (
   sh_id    SERIAL PRIMARY KEY,
   sr_id    INT REFERENCES service_reports(sr_id),
@@ -254,17 +231,15 @@ CREATE TABLE IF NOT EXISTS sr_hours (
   time_out BIGINT
 );
 
--- ─── SR Parts used ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sr_parts (
-  sp_id    SERIAL PRIMARY KEY,
-  sr_id    INT REFERENCES service_reports(sr_id),
-  part_id  INT,
-  sp_qty   NUMERIC(10,2),
+  sp_id     SERIAL PRIMARY KEY,
+  sr_id     INT REFERENCES service_reports(sr_id),
+  part_id   INT,
+  sp_qty    NUMERIC(10,2),
   sp_billed BOOLEAN DEFAULT FALSE,
   sp_reason TEXT
 );
 
--- ─── SR Equipment serviced ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sr_equips (
   se_id       SERIAL PRIMARY KEY,
   sr_id       INT REFERENCES service_reports(sr_id),
@@ -272,18 +247,16 @@ CREATE TABLE IF NOT EXISTS sr_equips (
   se_selected BOOLEAN DEFAULT TRUE
 );
 
--- ─── Time Card ──────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS time_entries (
-  te_id      SERIAL PRIMARY KEY,
-  cnt_id     INT REFERENCES contacts(cnt_id),
-  te_date    DATE DEFAULT CURRENT_DATE,
-  te_name    VARCHAR(50),
-  te_type    SMALLINT,
-  time_in    BIGINT,
-  time_out   BIGINT
+  te_id    SERIAL PRIMARY KEY,
+  cnt_id   INT REFERENCES contacts(cnt_id),
+  te_date  DATE DEFAULT CURRENT_DATE,
+  te_name  VARCHAR(50),
+  te_type  SMALLINT,
+  time_in  BIGINT,
+  time_out BIGINT
 );
 
--- ─── Indexes ────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_tickets_status   ON tickets(tkt_status);
 CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON tickets(tkt_assigned);
 CREATE INDEX IF NOT EXISTS idx_tn_tkt           ON ticket_notifications(tkt_id);
