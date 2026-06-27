@@ -8,6 +8,26 @@ const tickets    = require('../../handlers/admin/tickets_admin');
 const equipment  = require('../../handlers/admin/equipment_admin');
 const reports    = require('../../handlers/admin/reports_admin');
 const parts      = require('../../handlers/admin/parts_admin');
+const auth       = require('../../handlers/admin/login');
+
+// ── Auth (public — no token required) ────────────────────────────────────────
+router.post('/login',  async (req, res) => {
+  try { res.json(await auth.login(req.body.username, req.body.password)); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.post('/logout', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  res.json(auth.logout(token));
+});
+
+// ── Auth middleware — protects everything below ───────────────────────────────
+router.use((req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token || !auth.getSession(token)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+});
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 router.get('/dashboard', async (req, res) => {
