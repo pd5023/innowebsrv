@@ -12,15 +12,8 @@ const auth       = require('../../handlers/admin/login');
 
 // ── Auth (public — no token required) ────────────────────────────────────────
 router.post('/login',  async (req, res) => {
-  try {
-    const result = await auth.login(req.body.username, req.body.password);
-    console.log('[login] user:', req.body.username, '| result:', JSON.stringify(result));
-    res.json(result);
-  }
-  catch (e) {
-    console.error('[login] exception:', e.message);
-    res.status(500).json({ error: e.message });
-  }
+  try { res.json(await auth.login(req.body.username, req.body.password)); }
+  catch (e) { res.status(500).json({ error: e.message }); }
 });
 router.post('/logout', (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
