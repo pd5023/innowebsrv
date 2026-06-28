@@ -12,7 +12,13 @@ router.get('/', async (req, res) => {
     const cmd = parts[0];
 
     if (cmd === 'getcred') {
-      const result = await handleLogin(parts[1], parts[2]);
+      // Flutter URL-encodes the credentials: 'getcred|user%7Cpass'
+      // Decode before splitting username and password
+      const decoded = decodeURIComponent(parts.slice(1).join('|'));
+      const sep = decoded.indexOf('|');
+      const username = decoded.substring(0, sep).trim();
+      const password = decoded.substring(sep + 1).trim();
+      const result = await handleLogin(username, password);
       return res.json(result);
     }
 
