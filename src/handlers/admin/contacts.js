@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 async function listContacts(cltId) {
   const r = await pool.query(
     `SELECT c.cnt_id, c.name, c.email, c.phone, c.mobile, c.username,
-            c.is_active, c.clt_id, c.cat_id, c.zone_id,
+            c.is_active, c.clt_id, c.cat_id, c.zone_id, c.cnt_role,
             cl.clt_name, z.zone_name
      FROM contacts c
      JOIN clients cl ON cl.clt_id = c.clt_id
@@ -18,17 +18,17 @@ async function listContacts(cltId) {
 async function createContact(data) {
   const hash = await bcrypt.hash(data.password || 'Password1', 10);
   const r = await pool.query(
-    `INSERT INTO contacts (clt_id, cat_id, zone_id, name, email, phone, mobile, username, password)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING cnt_id, name, email, username`,
-    [data.clt_id, data.cat_id, data.zone_id, data.name, data.email, data.phone, data.mobile, data.username, hash]
+    `INSERT INTO contacts (clt_id, cat_id, zone_id, name, email, phone, mobile, username, password, cnt_role)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING cnt_id, name, email, username, cnt_role`,
+    [data.clt_id, data.cat_id, data.zone_id, data.name, data.email, data.phone, data.mobile, data.username, hash, data.cnt_role || 'staff']
   );
   return r.rows[0];
 }
 async function updateContact(id, data) {
   const r = await pool.query(
-    `UPDATE contacts SET name=$1, email=$2, phone=$3, mobile=$4, zone_id=$5, is_active=$6
-     WHERE cnt_id=$7 RETURNING cnt_id, name, email`,
-    [data.name, data.email, data.phone, data.mobile, data.zone_id, data.is_active !== false, id]
+    `UPDATE contacts SET name=$1, email=$2, phone=$3, mobile=$4, zone_id=$5, is_active=$6, cnt_role=$7
+     WHERE cnt_id=$8 RETURNING cnt_id, name, email, cnt_role`,
+    [data.name, data.email, data.phone, data.mobile, data.zone_id, data.is_active !== false, data.cnt_role || 'staff', id]
   );
   return r.rows[0];
 }

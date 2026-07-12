@@ -3,15 +3,13 @@ const bcrypt = require('bcryptjs');
 
 async function handleLogin(username, password) {
   const userRes = await pool.query(
-    `SELECT c.cnt_id, c.name, c.password, c.email, c.phone, c.mobile,
-            c.zone_id, c.cat_id, c.clt_id,
-            z.zone_name,
+    `SELECT c.cnt_id, c.name, c.password, c.email, c.mobile,
+            c.zone_id, c.cat_id, c.clt_id, c.cnt_role,
             cl.clt_name, cl.clt_main_nb, cl.clt_main800, cl.clt_busHrs,
-            cl.clt_siteurl, cl.clt_lang, cl.clt_tc_lunch,
+            cl.clt_lang, cl.clt_tc_lunch,
             cl.pref_hrtick, cl.pref_allowSRbill, cl.pref_flexSRtime, cl.pref_reqGeoLoc
      FROM contacts c
      JOIN clients cl ON cl.clt_id = c.clt_id
-     JOIN zones z   ON z.zone_id  = c.zone_id
      WHERE c.username = $1 AND c.is_active = TRUE`,
     [username]
   );
@@ -37,30 +35,26 @@ async function handleLogin(username, password) {
 
   return [
     {
-      id: user.cnt_id,
-      name: user.name,
-      password: user.password,
+      id:       user.cnt_id,
+      name:     user.name,
       email_to: user.email,
-      phone: user.phone,
-      mobile: user.mobile,
-      zone: user.zone_id,
-      cntid: user.cnt_id,
-      catid: user.cat_id,
+      mobile:   user.mobile,
+      zone:     user.zone_id,
+      clt_id:   user.clt_id,
+      auth_role: user.cnt_role || 'staff',
+      catid:    user.cat_id,
       1: {
-        clt_name: user.clt_name,
-        clt_main_nb: user.clt_main_nb,
-        clt_main800: user.clt_main800,
-        clt_busHrs: user.clt_busHrs,
-        clt_siteurl: user.clt_siteurl,
-        clt_lang: user.clt_lang,
-        clt_tc_lunch: user.clt_tc_lunch,
-        pref_hrtick: user.pref_hrtick,
+        clt_name:         user.clt_name,
+        clt_main_nb:      user.clt_main_nb,
+        clt_main800:      user.clt_main800,
+        clt_busHrs:       user.clt_busHrs,
+        clt_lang:         user.clt_lang,
+        clt_tc_lunch:     user.clt_tc_lunch,
+        pref_hrtick:      user.pref_hrtick,
         pref_allowSRbill: user.pref_allowSRbill ? '1' : '0',
-        pref_flexSRtime: user.pref_flexSRtime ? '1' : '0',
-        pref_reqGeoLoc: user.pref_reqGeoLoc ? '1' : '0',
+        pref_flexSRtime:  user.pref_flexSRtime  ? '1' : '0',
+        pref_reqGeoLoc:   user.pref_reqGeoLoc   ? '1' : '0',
       },
-      0: user.zone_name,
-      host: `client_${user.clt_id}`,
       3: laborTypes.rows,
       4: partTypes.rows,
       5: partOrigins.rows,
