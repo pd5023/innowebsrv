@@ -87,8 +87,6 @@ CREATE TABLE IF NOT EXISTS labor_rates (
 
 CREATE TABLE IF NOT EXISTS modalities (
   modal_id   SERIAL PRIMARY KEY,
-  clt_id     INT REFERENCES clients(clt_id),
-  cat_id     INT REFERENCES categories(cat_id),
   modal_name VARCHAR(80) NOT NULL
 );
 
@@ -99,7 +97,6 @@ CREATE TABLE IF NOT EXISTS makes (
 
 CREATE TABLE IF NOT EXISTS departments (
   dept_id   SERIAL PRIMARY KEY,
-  clt_id    INT REFERENCES clients(clt_id),
   dept_name VARCHAR(100) NOT NULL
 );
 

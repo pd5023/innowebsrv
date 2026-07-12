@@ -37,12 +37,12 @@ async function updateEquipment(id, data) {
   return r.rows[0];
 }
 
-async function listDepartments(cltId) {
-  const r = await pool.query('SELECT * FROM departments WHERE ($1::int IS NULL OR clt_id=$1) ORDER BY dept_name', [cltId || null]);
+async function listDepartments() {
+  const r = await pool.query('SELECT dept_id, dept_name FROM departments ORDER BY dept_name');
   return r.rows;
 }
-async function listModalities(cltId) {
-  const r = await pool.query('SELECT * FROM modalities WHERE ($1::int IS NULL OR clt_id=$1) ORDER BY modal_name', [cltId || null]);
+async function listModalities() {
+  const r = await pool.query('SELECT modal_id, modal_name FROM modalities ORDER BY modal_name');
   return r.rows;
 }
 async function listMakes() {

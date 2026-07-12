@@ -58,8 +58,8 @@ router.post('/tickets/:id/notify', async (req, res) => { try { res.json(await ti
 router.get('/equipment',        async (req, res) => { try { res.json(await equipment.listEquipment(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.post('/equipment',       async (req, res) => { try { res.json(await equipment.createEquipment(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.put('/equipment/:id',    async (req, res) => { try { res.json(await equipment.updateEquipment(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.get('/departments',      async (req, res) => { try { res.json(await equipment.listDepartments(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.get('/modalities',       async (req, res) => { try { res.json(await equipment.listModalities(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/departments',      async (req, res) => { try { res.json(await equipment.listDepartments()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/modalities',       async (req, res) => { try { res.json(await equipment.listModalities()); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.get('/makes',            async (req, res) => { try { res.json(await equipment.listMakes()); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Service Reports ───────────────────────────────────────────────────────────

@@ -23,10 +23,10 @@ INSERT INTO labor_types (lt_id, clt_id, cat_id, name) VALUES
   (3, 1, 1, 'Installation')
 ON CONFLICT (lt_id) DO NOTHING;
 
-INSERT INTO modalities (modal_id, clt_id, cat_id, modal_name) VALUES
-  (1, 1, 1, 'Ultrasound'),
-  (2, 1, 1, 'MRI'),
-  (3, 1, 1, 'CT')
+INSERT INTO modalities (modal_id, modal_name) VALUES
+  (1, 'Ultrasound'),
+  (2, 'MRI'),
+  (3, 'CT')
 ON CONFLICT (modal_id) DO NOTHING;
 
 INSERT INTO makes (make_id, make_name) VALUES
@@ -35,10 +35,10 @@ INSERT INTO makes (make_id, make_name) VALUES
   (3, 'Siemens')
 ON CONFLICT (make_id) DO NOTHING;
 
-INSERT INTO departments (dept_id, clt_id, dept_name) VALUES
-  (1, 1, 'ICU'),
-  (2, 1, 'Cardiology'),
-  (3, 1, 'Radiology')
+INSERT INTO departments (dept_id, dept_name) VALUES
+  (1, 'ICU'),
+  (2, 'Cardiology'),
+  (3, 'Radiology')
 ON CONFLICT (dept_id) DO NOTHING;
 
 INSERT INTO equipment (eqp_id, clt_id, dept_id, modal_id, make_id, eqp_alias, eqp_model, eqp_serial, eqp_barcode)
