@@ -94,7 +94,6 @@ CREATE TABLE IF NOT EXISTS modalities (
 
 CREATE TABLE IF NOT EXISTS makes (
   make_id   SERIAL PRIMARY KEY,
-  clt_id    INT REFERENCES clients(clt_id),
   make_name VARCHAR(80) NOT NULL
 );
 

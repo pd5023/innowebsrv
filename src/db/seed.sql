@@ -29,10 +29,10 @@ INSERT INTO modalities (modal_id, clt_id, cat_id, modal_name) VALUES
   (3, 1, 1, 'CT')
 ON CONFLICT (modal_id) DO NOTHING;
 
-INSERT INTO makes (make_id, clt_id, make_name) VALUES
-  (1, 1, 'GE Healthcare'),
-  (2, 1, 'Philips'),
-  (3, 1, 'Siemens')
+INSERT INTO makes (make_id, make_name) VALUES
+  (1, 'GE Healthcare'),
+  (2, 'Philips'),
+  (3, 'Siemens')
 ON CONFLICT (make_id) DO NOTHING;
 
 INSERT INTO departments (dept_id, clt_id, dept_name) VALUES

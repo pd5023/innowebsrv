@@ -45,8 +45,8 @@ async function listModalities(cltId) {
   const r = await pool.query('SELECT * FROM modalities WHERE ($1::int IS NULL OR clt_id=$1) ORDER BY modal_name', [cltId || null]);
   return r.rows;
 }
-async function listMakes(cltId) {
-  const r = await pool.query('SELECT * FROM makes WHERE ($1::int IS NULL OR clt_id=$1) ORDER BY make_name', [cltId || null]);
+async function listMakes() {
+  const r = await pool.query('SELECT make_id, make_name FROM makes ORDER BY make_name');
   return r.rows;
 }
 
