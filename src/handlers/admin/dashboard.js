@@ -5,7 +5,7 @@ async function getDashboard() {
     pool.query("SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE tkt_assigned IS NULL) AS unassigned FROM tickets WHERE tkt_status = 0"),
     pool.query("SELECT COUNT(*) AS total FROM ticket_notifications WHERE tnif_stop = FALSE"),
     pool.query("SELECT COUNT(*) AS total FROM contacts WHERE is_active = TRUE"),
-    pool.query("SELECT COUNT(*) AS total FROM service_reports WHERE created_at >= NOW() - INTERVAL '30 days'"),
+    pool.query("SELECT COUNT(*) AS total FROM sub_reports WHERE created_at >= NOW() - INTERVAL '30 days'"),
   ]);
   return {
     openTickets:    parseInt(tickets.rows[0].total),

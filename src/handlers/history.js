@@ -1,10 +1,10 @@
-﻿const pool = require('../db/pool');
+const pool = require('../db/pool');
 
 async function getHistory(cntId, catId, zone) {
   const res = await pool.query(
     `SELECT DISTINCT e.eqp_id AS "eqp_ID", e.eqp_alias, e.eqp_model,
             c.clt_name, d.dept_name, m.modal_name
-     FROM service_reports sr
+     FROM sub_reports sr
      JOIN tickets   t  ON t.tkt_id  = sr.tkt_id
      JOIN clients   c  ON c.clt_id  = t.clt_id
      JOIN equipment e  ON e.eqp_id  = t.eqp_id
@@ -20,10 +20,10 @@ async function getHistory(cntId, catId, zone) {
 
 async function getEquipHistory(eqpId) {
   const res = await pool.query(
-    `SELECT sr.sr_id, t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrt_desc,
+    `SELECT sr.subr_id, t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrt_desc,
             con.name AS "NAME", sr.sr_date AS "sDate", sr.sr_repairs AS "sDesc",
             t.tkt_status AS "tkt_type"
-     FROM service_reports sr
+     FROM sub_reports sr
      JOIN tickets  t   ON t.tkt_id  = sr.tkt_id
      JOIN contacts con ON con.cnt_id = sr.cnt_id
      WHERE t.eqp_id = $1

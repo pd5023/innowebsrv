@@ -156,7 +156,10 @@ CREATE TABLE IF NOT EXISTS tickets (
   tkt_po        VARCHAR(100),
   tkt_status    SMALLINT DEFAULT 0,
   has_pics      SMALLINT DEFAULT 0,
-  created_by    INT REFERENCES contacts(cnt_id)
+  created_by    INT REFERENCES contacts(cnt_id),
+  tkt_emails    TEXT,
+  tkt_sign      TEXT,
+  tkt_sign_name VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS ticket_notifications (
@@ -195,8 +198,8 @@ CREATE TABLE IF NOT EXISTS parts (
   diff         BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS service_reports (
-  sr_id          SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS sub_reports (
+  subr_id        SERIAL PRIMARY KEY,
   tkt_id         INT REFERENCES tickets(tkt_id),
   cnt_id         INT REFERENCES contacts(cnt_id),
   sr_date        DATE DEFAULT CURRENT_DATE,
@@ -209,7 +212,6 @@ CREATE TABLE IF NOT EXISTS service_reports (
   sr_sign        TEXT,
   sr_po          VARCHAR(100),
   sr_employees   TEXT,
-  sr_emails      TEXT,
   sr_pm_tasks    TEXT,
   sr_pic1        TEXT,
   sr_pic2        TEXT,
@@ -220,7 +222,7 @@ CREATE TABLE IF NOT EXISTS service_reports (
 
 CREATE TABLE IF NOT EXISTS sr_hours (
   sh_id    SERIAL PRIMARY KEY,
-  sr_id    INT REFERENCES service_reports(sr_id),
+  subr_id  INT REFERENCES sub_reports(subr_id),
   cnt_id   INT REFERENCES contacts(cnt_id),
   hr_type  SMALLINT,
   time_in  BIGINT,
@@ -256,6 +258,6 @@ CREATE TABLE IF NOT EXISTS time_entries (
 CREATE INDEX IF NOT EXISTS idx_tickets_status   ON tickets(tkt_status);
 CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON tickets(tkt_assigned);
 CREATE INDEX IF NOT EXISTS idx_tn_tkt           ON ticket_notifications(tkt_id);
-CREATE INDEX IF NOT EXISTS idx_sr_tkt           ON service_reports(tkt_id);
+CREATE INDEX IF NOT EXISTS idx_sr_tkt           ON sub_reports(tkt_id);
 CREATE INDEX IF NOT EXISTS idx_parts_tkt        ON parts(tkt_id);
 CREATE INDEX IF NOT EXISTS idx_tc_cnt_date      ON time_entries(cnt_id, te_date);
