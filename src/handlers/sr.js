@@ -1,86 +1,85 @@
 const pool = require('../db/pool');
 
-async function getSrDetails(tktId, eqpId, cntId, woType, zone) {
-  const [rateRes, contractRes, emplRes, partsRes, equipRes, histRes, woPartsRes] = await Promise.all([
-    pool.query('SELECT rate_labreg, rate_trvreg, rate_labOT, rate_trvOT FROM labor_rates WHERE clt_id = (SELECT clt_id FROM tickets WHERE tkt_id = $1)', [tktId]),
-    pool.query('SELECT quote_eqp, cov_end, cov_hrs, cov_days, cov_options FROM contracts WHERE clt_id = (SELECT clt_id FROM tickets WHERE tkt_id = $1) LIMIT 1', [tktId]),
-    pool.query('SELECT cnt_id AS id, name, zone_id AS zone FROM contacts WHERE clt_id = (SELECT clt_id FROM tickets WHERE tkt_id = $1) AND is_active = TRUE ORDER BY name', [tktId]),
-    pool.query('SELECT part_id AS "partID", part_desc, part_numb, part_qty, part_price, part_orig, part_cat, tkt_id AS part_tkt_numb, part_billed FROM parts WHERE tkt_id = $1', [tktId]),
-    pool.query('SELECT subeqp_id, eqtype_name, eqp_model, subeqp_serial, subeqp_main FROM sub_equipment WHERE eqp_id = $1', [eqpId]),
-    pool.query('SELECT subr_id AS "serv_SRID", sr_po AS "serv_po", sr_pic1 AS "serv_pic1", sr_pic2 AS "serv_pic2", sr_capt1 AS "serv_capt1", sr_capt2 AS "serv_capt2" FROM sub_reports WHERE tkt_id = $1 ORDER BY created_at DESC LIMIT 1', [tktId]),
-    pool.query('SELECT p.*, sp.sp_qty, sp.sp_billed FROM sr_parts sp JOIN parts p ON p.part_id = sp.part_id WHERE sp.subr_id = (SELECT subr_id FROM sub_reports WHERE tkt_id = $1 ORDER BY created_at DESC LIMIT 1)', [tktId]),
+async function getSrDetails(tktId, eqpId) {
+  const [rateRes, contractRes, emplRes, partsRes, subEqpRes, lastSrRes] = await Promise.all([
+    pool.query('SELECT rate_id, rate_detail FROM labor_rates ORDER BY rate_effDate DESC LIMIT 1'),
+    pool.query(
+      `SELECT cm.contract_id, cm.contract_name, cm.contract_endDate,
+              ce.contEqp_coverage
+       FROM contracts_main cm
+       JOIN contracts_dept  cd ON cd.contDept_contractId = cm.contract_id
+       JOIN contracts_equip ce ON ce.contEqp_deptId = cd.contDept_id
+       WHERE cm.contract_cltId = (SELECT tkt_cltId FROM tickets WHERE tkt_id = $1) LIMIT 1`,
+      [tktId]
+    ),
+    pool.query(
+      `SELECT empl_id AS id, empl_name AS name FROM employees
+       WHERE empl_isActive = TRUE ORDER BY empl_name`,
+      []
+    ),
+    pool.query(
+      `SELECT part_id AS "partID", part_name, part_num, part_price,
+              part_status, part_tktId AS part_tkt_numb
+       FROM parts WHERE part_tktId = $1`,
+      [tktId]
+    ),
+    pool.query(
+      `SELECT subeqp_id, subeqp_model, subeqp_serial, subeqp_isActive
+       FROM sub_equipment WHERE subeqp_eqpId = $1`,
+      [eqpId]
+    ),
+    pool.query(
+      `SELECT sr_id, sr_date, sr_hrs, sr_desc, sr_status, sr_signName, sr_hasPics
+       FROM SR WHERE sr_tktId = $1 ORDER BY sr_date DESC LIMIT 1`,
+      [tktId]
+    ),
   ]);
 
   const result = new Array(9).fill(null);
-  result[0] = rateRes.rows[0] ?? { rate_labreg: 0, rate_trvreg: 0, rate_labOT: 0, rate_trvOT: 0 };
+  result[0] = rateRes.rows[0] ?? { rate_id: null, rate_detail: {} };
   result[1] = contractRes.rows[0] ?? { result: 'nocontract' };
   result[2] = emplRes.rows;
   result[3] = partsRes.rows.length > 0 ? partsRes.rows : [{ result: 'norecords' }];
-  result[4] = equipRes.rows.length > 0 ? equipRes.rows : [{ result: 'norecords' }];
-  result[5] = woType == 2 ? '[]' : { result: 'norecords' };
+  result[4] = subEqpRes.rows.length > 0 ? subEqpRes.rows : [{ result: 'norecords' }];
+  result[5] = { result: 'norecords' };
   result[6] = null;
-  result[7] = histRes.rows[0] ?? { result: 'norecords' };
-  result[8] = woPartsRes.rows.length > 0 ? woPartsRes.rows : [{ result: 'norecords' }];
+  result[7] = lastSrRes.rows[0] ?? { result: 'norecords' };
+  result[8] = { result: 'norecords' };
   return result;
 }
 
 async function submitSr(body) {
-  // Format: tktId`repairs~srId`hours`labRate`billable`noBillRsn`employees~srId`complete`signName`po`date`cntId`emails`pmTasks`img``~`~equips^^parts`srId
+  // Format: tktId`eqpId`shrtDesc`desc`status`hrs(json)`signName`sign^^pics
   try {
     const [mainPart] = body.split('^^');
-    const fields = mainPart.split('`');
-    const tktId   = parseInt(fields[0]);
-    const repairs  = fields[1]?.split('~')[0] ?? '';
-    const hours    = fields[2] ?? '';
-    const labRate  = parseFloat(fields[3]) || 0;
-    const billable = fields[4] === '1';
-    const noBill   = fields[5] ?? '';
-    const empl     = fields[6]?.split('~')[0] ?? '';
-    const complete = fields[7] === '1';
-    const signName = fields[8] ?? '';
-    const po       = fields[9] ?? '';
-    const srDate   = fields[10] ?? new Date().toISOString().split('T')[0];
-    const cntId    = parseInt(fields[11]);
-    const emails   = fields[12] ?? '';
-    const pmTasks  = fields[13] ?? '';
-    const img      = fields[14] ?? '';
+    const fields   = mainPart.split('`');
+    const tktId    = parseInt(fields[0]);
+    const eqpId    = parseInt(fields[1]);
+    const shrtDesc = fields[2] ?? '';
+    const desc     = fields[3] ?? '';
+    const status   = parseInt(fields[4]) || 1;
+    const hrs      = fields[5] ?? '{"Start":"0:00","Out":"0:00","In":"0:00","End":"0:00"}';
+    const signName = fields[6] ?? '';
+    const sign     = fields[7] ?? '';
 
     const srRes = await pool.query(
-      `INSERT INTO sub_reports
-         (tkt_id, cnt_id, sr_date, sr_repairs, sr_lab_rate, sr_billable,
-          sr_no_bill_rsn, sr_complete, sr_sign_name, sr_sign, sr_po, sr_employees, sr_pm_tasks, sr_pic1)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-       RETURNING subr_id`,
-      [tktId, cntId || null, srDate, repairs, labRate, billable, noBill,
-       complete, signName, img ? `data:image/png;base64,${img}` : '', po, empl, pmTasks, '']
+      `INSERT INTO SR
+         (sr_tktId, sr_eqpId, sr_date, sr_shrtDesc, sr_desc,
+          sr_status, sr_hrs, sr_signName, sr_sign)
+       VALUES ($1,$2,NOW(),$3,$4,$5,$6,$7,$8)
+       RETURNING sr_id`,
+      [tktId, eqpId || null, shrtDesc, desc, status,
+       JSON.parse(hrs), signName, sign ? `data:image/png;base64,${sign}` : '']
     );
 
-    const subrId = srRes.rows[0].subr_id;
+    const srId = srRes.rows[0].sr_id;
 
-    // Save emails to ticket level
-    if (emails) {
-      await pool.query('UPDATE tickets SET tkt_emails = $1 WHERE tkt_id = $2', [emails, tktId]);
+    // Close ticket when SR status = 4 (Completed)
+    if (status === 4) {
+      await pool.query('UPDATE tickets SET tkt_status = 4 WHERE tkt_id = $1', [tktId]);
     }
 
-    // Parse and insert hours
-    if (hours) {
-      for (const h of hours.split('@').filter(Boolean)) {
-        const [engId, type, start, end] = h.split('~');
-        if (engId && start && end) {
-          await pool.query(
-            'INSERT INTO sr_hours (subr_id, cnt_id, hr_type, time_in, time_out) VALUES ($1,$2,$3,$4,$5)',
-            [subrId, parseInt(engId), parseInt(type), parseInt(start), parseInt(end)]
-          );
-        }
-      }
-    }
-
-    // Close ticket only if marked complete
-    if (complete) {
-      await pool.query('UPDATE tickets SET tkt_status = 1 WHERE tkt_id = $1', [tktId]);
-    }
-
-    return [{ result: 'ok', subr_id: subrId }];
+    return [{ result: 'ok', sr_id: srId }];
   } catch (err) {
     console.error('SR submit error:', err);
     return [{ error: err.message }];

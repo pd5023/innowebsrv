@@ -1,22 +1,22 @@
-﻿const pool = require('../db/pool');
+const pool = require('../db/pool');
 
-async function getPartOrders(cntId) {
+async function getPartOrders(emplId) {
   const res = await pool.query(
-    `SELECT p.part_desc AS "Desc", p.part_numb AS "Number", p.part_qty AS "Qty",
-            p.date_req AS "Date", p.o_desc AS "oDesc", p.o_number AS "oNumber",
-            p.o_qty AS "oQty", p.changed AS "Changed", p.diff AS "Diff",
-            p.order_status AS "GroupName"
+    `SELECT p.part_id, p.part_name AS "Desc", p.part_num AS "Number",
+            p.part_price AS "Price", p.part_dateOrder AS "Date",
+            p.part_status AS "StatusId", ps.partStat_name AS "GroupName",
+            p.part_tktId
      FROM parts p
-     JOIN tickets t ON t.tkt_id = p.tkt_id
-     WHERE t.tkt_assigned = $1 AND p.order_status IS NOT NULL
-     ORDER BY p.order_status, p.date_req DESC`,
-    [cntId]
+     JOIN tickets    t  ON t.tkt_id      = p.part_tktId
+     JOIN part_status ps ON ps.partStat_id = p.part_status
+     WHERE t.tkt_assigned = $1
+     ORDER BY p.part_status, p.part_dateOrder DESC`,
+    [emplId]
   );
   if (res.rows.length === 0) return [{ result: 'norecords' }];
   return res.rows.map(r => ({
     ...r,
     Date: r.Date?.toISOString?.() ?? r.Date,
-    Changed: r.Changed ? 1 : 0,
   }));
 }
 

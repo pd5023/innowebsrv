@@ -42,17 +42,16 @@ router.post('/clients',         async (req, res) => { try { res.json(await clien
 router.put('/clients/:id',      async (req, res) => { try { res.json(await clients.updateClient(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.delete('/clients/:id',   async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
-// ── Contacts / Engineers ──────────────────────────────────────────────────────
-router.get('/contacts',         async (req, res) => { try { res.json(await contacts.listContacts(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/contacts',        async (req, res) => { try { res.json(await contacts.createContact(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/contacts/:id',     async (req, res) => { try { res.json(await contacts.updateContact(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+// ── Employees ─────────────────────────────────────────────────────────────────
+router.get('/contacts',         async (req, res) => { try { res.json(await contacts.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/contacts',        async (req, res) => { try { res.json(await contacts.createEmployee(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/contacts/:id',     async (req, res) => { try { res.json(await contacts.updateEmployee(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.post('/contacts/:id/reset-password', async (req, res) => { try { res.json(await contacts.resetPassword(req.params.id, req.body.password)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Tickets ───────────────────────────────────────────────────────────────────
 router.get('/tickets',          async (req, res) => { try { res.json(await tickets.listTickets(req.query)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/tickets/:id/assign',async (req, res) => { try { res.json(await tickets.assignTicket(req.params.id, req.body.cnt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/tickets/:id/void', async (req, res) => { try { res.json(await tickets.voidTicket(req.params.id, req.body.reason)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/tickets/:id/notify', async (req, res) => { try { res.json(await tickets.sendNotification(req.params.id, req.body.cnt_id, req.body.message)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/tickets/:id/assign',async (req, res) => { try { res.json(await tickets.assignTicket(req.params.id, req.body.empl_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/tickets/:id/void', async (req, res) => { try { res.json(await tickets.voidTicket(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
 router.get('/equipment',        async (req, res) => { try { res.json(await equipment.listEquipment(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
@@ -68,6 +67,6 @@ router.get('/reports/:id',      async (req, res) => { try { res.json(await repor
 
 // ── Parts Orders ──────────────────────────────────────────────────────────────
 router.get('/parts',            async (req, res) => { try { res.json(await parts.listParts(req.query)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/parts/:id/status', async (req, res) => { try { const { status, o_desc, o_number, o_qty } = req.body; res.json(await parts.updatePartStatus(req.params.id, status, o_desc, o_number, o_qty)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/parts/:id/status', async (req, res) => { try { const { statusId, receiveDate } = req.body; res.json(await parts.updatePartStatus(req.params.id, statusId, receiveDate)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 module.exports = router;

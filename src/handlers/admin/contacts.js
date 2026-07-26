@@ -1,41 +1,50 @@
 const pool   = require('../../db/pool');
 const bcrypt = require('bcryptjs');
 
-async function listContacts(cltId) {
+async function listEmployees(cltId) {
   const r = await pool.query(
-    `SELECT c.cnt_id, c.name, c.email, c.phone, c.mobile, c.username,
-            c.is_active, c.clt_id, c.cat_id, c.zone_id, c.cnt_role,
-            cl.clt_name, z.zone_name
-     FROM contacts c
-     JOIN clients cl ON cl.clt_id = c.clt_id
-     JOIN zones   z  ON z.zone_id = c.zone_id
-     WHERE ($1::int IS NULL OR c.clt_id = $1)
-     ORDER BY c.name`,
-    [cltId || null]
+    `SELECT empl_id, empl_name, empl_email, empl_phone, empl_username,
+            empl_isActive, empl_clientPrim, empl_clientSec, empl_role, empl_cats
+     FROM employees
+     ORDER BY empl_name`
   );
   return r.rows;
 }
-async function createContact(data) {
+
+async function createEmployee(data) {
   const hash = await bcrypt.hash(data.password || 'Password1', 10);
   const r = await pool.query(
-    `INSERT INTO contacts (clt_id, cat_id, zone_id, name, email, phone, mobile, username, password, cnt_role)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING cnt_id, name, email, username, cnt_role`,
-    [data.clt_id, data.cat_id, data.zone_id, data.name, data.email, data.phone, data.mobile, data.username, hash, data.cnt_role || 'staff']
+    `INSERT INTO employees
+       (empl_subId, empl_name, empl_email, empl_phone, empl_username, empl_password,
+        empl_clientPrim, empl_clientSec, empl_role, empl_isActive)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     RETURNING empl_id, empl_name, empl_email, empl_username, empl_role`,
+    [data.empl_subId || 1, data.empl_name, data.empl_email, data.empl_phone,
+     data.empl_username, hash, data.empl_clientPrim || '', data.empl_clientSec || '',
+     data.empl_role || 'staff', data.empl_isActive !== false]
   );
   return r.rows[0];
 }
-async function updateContact(id, data) {
+
+async function updateEmployee(id, data) {
   const r = await pool.query(
-    `UPDATE contacts SET name=$1, email=$2, phone=$3, mobile=$4, zone_id=$5, is_active=$6, cnt_role=$7
-     WHERE cnt_id=$8 RETURNING cnt_id, name, email, cnt_role`,
-    [data.name, data.email, data.phone, data.mobile, data.zone_id, data.is_active !== false, data.cnt_role || 'staff', id]
+    `UPDATE employees
+     SET empl_name=$1, empl_email=$2, empl_phone=$3,
+         empl_clientPrim=$4, empl_clientSec=$5,
+         empl_role=$6, empl_isActive=$7
+     WHERE empl_id=$8
+     RETURNING empl_id, empl_name, empl_email, empl_role`,
+    [data.empl_name, data.empl_email, data.empl_phone,
+     data.empl_clientPrim || '', data.empl_clientSec || '',
+     data.empl_role || 'staff', data.empl_isActive !== false, id]
   );
   return r.rows[0];
 }
+
 async function resetPassword(id, newPassword) {
   const hash = await bcrypt.hash(newPassword, 10);
-  await pool.query('UPDATE contacts SET password=$1 WHERE cnt_id=$2', [hash, id]);
+  await pool.query('UPDATE employees SET empl_password=$1 WHERE empl_id=$2', [hash, id]);
   return { ok: true };
 }
 
-module.exports = { listContacts, createContact, updateContact, resetPassword };
+module.exports = { listEmployees, createEmployee, updateEmployee, resetPassword };

@@ -26,19 +26,16 @@ router.get('/', async (req, res) => {
       case 'gettkts':
         result = await tickets.getTickets(p[1], p[2], p[3]);
         break;
-      case 'getTktPics':
-        result = await tickets.getTicketPics(p[1]);
-        break;
       case 'newCall':
         result = await tickets.createTicket(p[1], p[2], p[3], p[4] !== '0' ? p[4] : null);
         break;
       case 'getVoidedTkts':
-        result = await tickets.getVoidedTickets(p[1]);
+        result = await tickets.getVoidedTickets();
         break;
 
       // ── Service Report ─────────────────────────────────────────────────────
       case 'SRdetails':
-        result = await sr.getSrDetails(p[1], p[2], p[3], p[4], p[5]);
+        result = await sr.getSrDetails(p[1], p[2]);
         break;
 
       // ── Notifications ──────────────────────────────────────────────────────
@@ -51,7 +48,7 @@ router.get('/', async (req, res) => {
 
       // ── History ────────────────────────────────────────────────────────────
       case 'gethist1':
-        result = await history.getHistory(p[1], p[2], p[3]);
+        result = await history.getHistory(p[1]);
         break;
       case 'gethist2':
         result = await history.getEquipHistory(p[1]);
@@ -78,7 +75,7 @@ router.get('/', async (req, res) => {
 
       // ── Account ────────────────────────────────────────────────────────────
       case 'updateCnt':
-        result = await account.updateContact(p[1], p[2], p[3], p[4], p[5]);
+        result = await account.updateEmployee(p[1], p[2], p[3], p[4]);
         break;
 
       default:
