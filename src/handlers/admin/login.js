@@ -7,8 +7,12 @@ const sessions = new Map();
 
 async function login(username, password) {
   const r = await pool.query(
-    `SELECT empl_id, empl_name, empl_password, empl_clientPrim, empl_isActive
-     FROM employees WHERE empl_username = $1`,
+    `SELECT e.empl_id, e.empl_name, e.empl_password, e.empl_clientPrim,
+            e.empl_role, e.empl_isActive, e.empl_subId, e.empl_cats,
+            so.sub_zone
+     FROM employees e
+     LEFT JOIN sub_office so ON so.sub_id = e.empl_subId
+     WHERE e.empl_username = $1`,
     [username]
   );
   if (!r.rows.length) return { error: 'Invalid credentials' };
@@ -21,13 +25,23 @@ async function login(username, password) {
 
   const cltId = parseInt((user.empl_clientprim ?? '').replace(/\D/g, '')) || null;
 
+  const session = {
+    id:         user.empl_id,
+    name:       user.empl_name,
+    role:       user.empl_role,
+    subId:      user.empl_subid,
+    zone:       user.sub_zone,
+    modalities: user.empl_cats ?? [],
+    clt_id:     cltId,
+  };
+
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { id: user.empl_id, name: user.empl_name, clt_id: cltId });
+  sessions.set(token, session);
 
   // Auto-expire after 8 hours
   setTimeout(() => sessions.delete(token), 8 * 60 * 60 * 1000);
 
-  return { token, name: user.empl_name, id: user.empl_id };
+  return { token, name: user.empl_name, id: user.empl_id, role: user.empl_role };
 }
 
 function logout(token) {

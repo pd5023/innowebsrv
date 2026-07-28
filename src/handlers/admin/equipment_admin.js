@@ -1,6 +1,26 @@
 const pool = require('../../db/pool');
+const { SCOPE, scopeOf } = require('../../policy/policy');
 
-async function listEquipment(cltId) {
+async function listEquipment(cltId, auth) {
+  const filters = ['($1::int IS NULL OR e.eqp_cltId = $1)'];
+  const params  = [cltId || null];
+
+  const scope = scopeOf(auth?.role);
+  if (scope === SCOPE.SUBOFFICE || scope === SCOPE.SUBOFFICE_MODALITY) {
+    params.push(auth.subId);
+    filters.push(`c.clt_subId = $${params.length}`);
+  } else if (scope === SCOPE.ZONE) {
+    params.push(auth.zone);
+    filters.push(`c.clt_zone = $${params.length}`);
+  } else if (scope === SCOPE.CLIENT || scope === SCOPE.CLIENT_MODALITY) {
+    params.push(auth.clt_id);
+    filters.push(`e.eqp_cltId = $${params.length}`);
+  }
+  if ((scope === SCOPE.SUBOFFICE_MODALITY || scope === SCOPE.CLIENT_MODALITY) && auth.modalities?.length) {
+    params.push(auth.modalities);
+    filters.push(`e.eqp_modalId = ANY($${params.length}::int[])`);
+  }
+
   const r = await pool.query(
     `SELECT e.eqp_id, e.eqp_alias, e.eqp_model, e.eqp_serial, e.eqp_barcode,
             e.eqp_roomAlias, e.eqp_isActive, e.eqp_isContract,
@@ -11,9 +31,9 @@ async function listEquipment(cltId) {
      JOIN client_depts cd ON cd.cltDept_id = e.eqp_deptId
      JOIN modalities   m  ON m.mod_id     = e.eqp_modalId
      JOIN makes        mk ON mk.make_id   = e.eqp_makeId
-     WHERE ($1::int IS NULL OR e.eqp_cltId = $1)
+     WHERE ${filters.join(' AND ')}
      ORDER BY c.clt_name, cd.cltDept_alias, e.eqp_alias`,
-    [cltId || null]
+    params
   );
   return r.rows;
 }

@@ -9,6 +9,7 @@ const equipment  = require('../../handlers/admin/equipment_admin');
 const reports    = require('../../handlers/admin/reports_admin');
 const parts      = require('../../handlers/admin/parts_admin');
 const auth       = require('../../handlers/admin/login');
+const requirePermission = require('../../policy/requirePermission');
 
 // ── Auth (public — no token required) ────────────────────────────────────────
 router.post('/login',  async (req, res) => {
@@ -20,12 +21,14 @@ router.post('/logout', (req, res) => {
   res.json(auth.logout(token));
 });
 
-// ── Auth middleware — protects everything below ───────────────────────────────
+// ── Auth middleware — protects everything below, attaches req.auth ────────────
 router.use((req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token || !auth.getSession(token)) {
+  const session = token && auth.getSession(token);
+  if (!session) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  req.auth = session;
   next();
 });
 
@@ -36,17 +39,17 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // ── Clients ───────────────────────────────────────────────────────────────────
-router.get('/clients',          async (req, res) => { try { res.json(await clients.listClients()); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.get('/clients/:id',      async (req, res) => { try { res.json(await clients.getClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/clients',         async (req, res) => { try { res.json(await clients.createClient(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/clients/:id',      async (req, res) => { try { res.json(await clients.updateClient(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.delete('/clients/:id',   async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/clients',          requirePermission('clients', 'read'),   async (req, res) => { try { res.json(await clients.listClients()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/clients/:id',      requirePermission('clients', 'read'),   async (req, res) => { try { res.json(await clients.getClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/clients',         requirePermission('clients', 'create'), async (req, res) => { try { res.json(await clients.createClient(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/clients/:id',      requirePermission('clients', 'update'), async (req, res) => { try { res.json(await clients.updateClient(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.delete('/clients/:id',   requirePermission('clients', 'delete'), async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
-// ── Employees ─────────────────────────────────────────────────────────────────
-router.get('/contacts',         async (req, res) => { try { res.json(await contacts.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/contacts',        async (req, res) => { try { res.json(await contacts.createEmployee(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/contacts/:id',     async (req, res) => { try { res.json(await contacts.updateEmployee(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/contacts/:id/reset-password', async (req, res) => { try { res.json(await contacts.resetPassword(req.params.id, req.body.password)); } catch (e) { res.status(500).json({ error: e.message }); } });
+// ── Employees (Admin only, per policy matrix) ──────────────────────────────────
+router.get('/contacts',         requirePermission('employees', 'read'),   async (req, res) => { try { res.json(await contacts.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/contacts',        requirePermission('employees', 'create'), async (req, res) => { try { res.json(await contacts.createEmployee(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/contacts/:id',     requirePermission('employees', 'update'), async (req, res) => { try { res.json(await contacts.updateEmployee(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/contacts/:id/reset-password', requirePermission('employees', 'update'), async (req, res) => { try { res.json(await contacts.resetPassword(req.params.id, req.body.password)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Tickets ───────────────────────────────────────────────────────────────────
 router.get('/tickets',          async (req, res) => { try { res.json(await tickets.listTickets(req.query)); } catch (e) { res.status(500).json({ error: e.message }); } });
@@ -54,9 +57,9 @@ router.put('/tickets/:id/assign',async (req, res) => { try { res.json(await tick
 router.put('/tickets/:id/void', async (req, res) => { try { res.json(await tickets.voidTicket(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
-router.get('/equipment',        async (req, res) => { try { res.json(await equipment.listEquipment(req.query.clt_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/equipment',       async (req, res) => { try { res.json(await equipment.createEquipment(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/equipment/:id',    async (req, res) => { try { res.json(await equipment.updateEquipment(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/equipment',        requirePermission('equipment', 'read'),   async (req, res) => { try { res.json(await equipment.listEquipment(req.query.clt_id, req.auth)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/equipment',       requirePermission('equipment', 'create'), async (req, res) => { try { res.json(await equipment.createEquipment(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/equipment/:id',    requirePermission('equipment', 'update'), async (req, res) => { try { res.json(await equipment.updateEquipment(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.get('/departments',      async (req, res) => { try { res.json(await equipment.listDepartments()); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.get('/modalities',       async (req, res) => { try { res.json(await equipment.listModalities()); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.get('/makes',            async (req, res) => { try { res.json(await equipment.listMakes()); } catch (e) { res.status(500).json({ error: e.message }); } });
