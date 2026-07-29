@@ -24,7 +24,7 @@ async function createClient(data) {
         pref_reqGeoLoc, pref_reqSign)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
     [data.clt_name, JSON.stringify(data.clt_address || {}), data.clt_phone, data.clt_800,
-     data.clt_busHrs, data.clt_siteurl, data.clt_zone || 1, data.clt_subId || 1,
+     data.clt_busHrs || 'Mon-Sun 6:00-23:00', data.clt_siteurl, data.clt_zone || 1, data.clt_subId || 1,
      data.pref_hrtick || 15, !!data.pref_allowSRbill, !!data.pref_flexSRtime,
      !!data.pref_reqGeoLoc, data.pref_reqSign !== false]
   );
