@@ -44,6 +44,8 @@ router.get('/clients/:id',      requirePermission('clients', 'read'),   async (r
 router.post('/clients',         requirePermission('clients', 'create'), async (req, res) => { try { res.json(await clients.createClient(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.put('/clients/:id',      requirePermission('clients', 'update'), async (req, res) => { try { res.json(await clients.updateClient(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.delete('/clients/:id',   requirePermission('clients', 'delete'), async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/zones',            async (req, res) => { try { res.json(await clients.listZones()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/suboffices',       async (req, res) => { try { res.json(await clients.listSubOffices()); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Employees (Admin only, per policy matrix) ──────────────────────────────────
 router.get('/employees',        requirePermission('employees', 'read'),   async (req, res) => { try { res.json(await employees.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
