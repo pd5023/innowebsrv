@@ -12,7 +12,7 @@ async function login(username, password) {
             so.sub_zone
      FROM employees e
      LEFT JOIN sub_office so ON so.sub_id = e.empl_subId
-     WHERE e.empl_username = $1`,
+     WHERE LOWER(e.empl_username) = LOWER($1)`,
     [username]
   );
   if (!r.rows.length) return { error: 'Invalid credentials' };

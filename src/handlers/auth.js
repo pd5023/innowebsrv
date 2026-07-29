@@ -6,7 +6,7 @@ async function handleLogin(username, password) {
     `SELECT empl_id, empl_name, empl_email, empl_phone, empl_password,
             empl_clientPrim, empl_role, empl_isActive
      FROM employees
-     WHERE empl_username = $1 AND empl_isActive = TRUE`,
+     WHERE LOWER(empl_username) = LOWER($1) AND empl_isActive = TRUE`,
     [username]
   );
 
