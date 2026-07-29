@@ -1,7 +1,7 @@
 const pool   = require('../../db/pool');
 const bcrypt = require('bcryptjs');
 
-async function listEmployees(cltId) {
+async function listEmployees() {
   const r = await pool.query(
     `SELECT empl_id, empl_name, empl_email, empl_phone, empl_username,
             empl_isActive, empl_clientPrim, empl_clientSec, empl_role, empl_cats
@@ -21,7 +21,7 @@ async function createEmployee(data) {
      RETURNING empl_id, empl_name, empl_email, empl_username, empl_role`,
     [data.empl_subId || 1, data.empl_name, data.empl_email, data.empl_phone,
      data.empl_username, hash, data.empl_clientPrim || '', data.empl_clientSec || '',
-     data.empl_role || 'staff', data.empl_isActive !== false]
+     data.empl_role || 'Employee', data.empl_isActive !== false]
   );
   return r.rows[0];
 }
@@ -36,7 +36,7 @@ async function updateEmployee(id, data) {
      RETURNING empl_id, empl_name, empl_email, empl_role`,
     [data.empl_name, data.empl_email, data.empl_phone,
      data.empl_clientPrim || '', data.empl_clientSec || '',
-     data.empl_role || 'staff', data.empl_isActive !== false, id]
+     data.empl_role || 'Employee', data.empl_isActive !== false, id]
   );
   return r.rows[0];
 }

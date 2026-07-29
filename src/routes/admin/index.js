@@ -3,7 +3,7 @@ const router     = express.Router();
 
 const dashboard  = require('../../handlers/admin/dashboard');
 const clients    = require('../../handlers/admin/clients');
-const contacts   = require('../../handlers/admin/contacts');
+const employees  = require('../../handlers/admin/employees');
 const tickets    = require('../../handlers/admin/tickets_admin');
 const equipment  = require('../../handlers/admin/equipment_admin');
 const reports    = require('../../handlers/admin/reports_admin');
@@ -46,10 +46,10 @@ router.put('/clients/:id',      requirePermission('clients', 'update'), async (r
 router.delete('/clients/:id',   requirePermission('clients', 'delete'), async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Employees (Admin only, per policy matrix) ──────────────────────────────────
-router.get('/contacts',         requirePermission('employees', 'read'),   async (req, res) => { try { res.json(await contacts.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/contacts',        requirePermission('employees', 'create'), async (req, res) => { try { res.json(await contacts.createEmployee(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.put('/contacts/:id',     requirePermission('employees', 'update'), async (req, res) => { try { res.json(await contacts.updateEmployee(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.post('/contacts/:id/reset-password', requirePermission('employees', 'update'), async (req, res) => { try { res.json(await contacts.resetPassword(req.params.id, req.body.password)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/employees',        requirePermission('employees', 'read'),   async (req, res) => { try { res.json(await employees.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/employees',       requirePermission('employees', 'create'), async (req, res) => { try { res.json(await employees.createEmployee(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/employees/:id',    requirePermission('employees', 'update'), async (req, res) => { try { res.json(await employees.updateEmployee(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.post('/employees/:id/reset-password', requirePermission('employees', 'update'), async (req, res) => { try { res.json(await employees.resetPassword(req.params.id, req.body.password)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Tickets ───────────────────────────────────────────────────────────────────
 router.get('/tickets',          async (req, res) => { try { res.json(await tickets.listTickets(req.query)); } catch (e) { res.status(500).json({ error: e.message }); } });
