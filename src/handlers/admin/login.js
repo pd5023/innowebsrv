@@ -7,8 +7,10 @@ const sessions = new Map();
 
 async function login(username, password) {
   const r = await pool.query(
-    `SELECT e.empl_id, e.empl_name, e.empl_password, e.empl_clientPrim,
-            e.empl_role, e.empl_isActive, e.empl_subId, e.empl_cats,
+    `SELECT e.empl_id, e.empl_name, e.empl_password,
+            e.empl_clientPrim AS "empl_clientPrim",
+            e.empl_role, e.empl_isActive AS "empl_isActive",
+            e.empl_subId AS "empl_subId", e.empl_cats,
             so.sub_zone
      FROM employees e
      LEFT JOIN sub_office so ON so.sub_id = e.empl_subId
@@ -18,18 +20,18 @@ async function login(username, password) {
   if (!r.rows.length) return { error: 'Invalid credentials' };
 
   const user = r.rows[0];
-  if (!user.empl_isactive) return { error: 'Account inactive' };
+  if (!user.empl_isActive) return { error: 'Account inactive' };
 
   const match = await bcrypt.compare(password, user.empl_password);
   if (!match) return { error: 'Invalid credentials' };
 
-  const cltId = parseInt((user.empl_clientprim ?? '').replace(/\D/g, '')) || null;
+  const cltId = parseInt((user.empl_clientPrim ?? '').replace(/\D/g, '')) || null;
 
   const session = {
     id:         user.empl_id,
     name:       user.empl_name,
     role:       user.empl_role,
-    subId:      user.empl_subid,
+    subId:      user.empl_subId,
     zone:       user.sub_zone,
     modalities: user.empl_cats ?? [],
     clt_id:     cltId,

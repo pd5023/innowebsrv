@@ -1,6 +1,18 @@
 const pool = require('../db/pool');
 const bcrypt = require('bcryptjs');
 
+// Postgres folds unquoted mixed-case identifiers to lowercase, so SELECT * / RETURNING *
+// on columns like clt_busHrs comes back as `clt_bushrs`, breaking JS code that expects
+// `clt_busHrs`. Alias every mixed-case column explicitly so the driver returns the exact
+// key we expect.
+const CLIENT_COLS = `clt_id, clt_name, clt_address, clt_phone, clt_800,
+  clt_busHrs AS "clt_busHrs", clt_siteurl, clt_zone,
+  clt_subId AS "clt_subId", pref_hrtick,
+  pref_allowSRbill AS "pref_allowSRbill",
+  pref_flexSRtime AS "pref_flexSRtime",
+  pref_reqGeoLoc AS "pref_reqGeoLoc",
+  pref_reqSign AS "pref_reqSign"`;
+
 async function handleLogin(username, password) {
   const userRes = await pool.query(
     `SELECT empl_id, empl_name, empl_email, empl_phone, empl_password,
@@ -21,9 +33,9 @@ async function handleLogin(username, password) {
 
   const [clientRes, laborRes, partOrigRes, partStatRes, tktStatRes, srStatRes] = await Promise.all([
     cltId
-      ? pool.query('SELECT * FROM clients WHERE clt_id = $1', [cltId])
+      ? pool.query(`SELECT ${CLIENT_COLS} FROM clients WHERE clt_id = $1`, [cltId])
       : Promise.resolve({ rows: [{}] }),
-    pool.query('SELECT rate_id AS id, rate_effDate, rate_detail FROM labor_rates ORDER BY rate_effDate DESC LIMIT 1'),
+    pool.query('SELECT rate_id AS id, rate_effDate AS "rate_effDate", rate_detail FROM labor_rates ORDER BY rate_effDate DESC LIMIT 1'),
     pool.query('SELECT partFrom_id AS id, partFrom_name AS name FROM part_origin ORDER BY partFrom_name'),
     pool.query('SELECT partStat_id AS id, partStat_name AS name FROM part_status ORDER BY partStat_id'),
     pool.query('SELECT tkt_statId AS id, tkt_statName AS name FROM tkt_status ORDER BY tkt_statId'),

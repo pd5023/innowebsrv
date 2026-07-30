@@ -1,5 +1,13 @@
 const pool = require('../../db/pool');
 
+// Postgres folds unquoted mixed-case identifiers to lowercase, so SELECT * / RETURNING *
+// on columns like part_dateOrder comes back as `part_dateorder`, breaking JS code that expects
+// `part_dateOrder`. Alias every mixed-case column explicitly so the driver returns the exact
+// key we expect.
+const PARTS_COLS = `part_id, part_tktId AS "part_tktId", part_srId AS "part_srId",
+  part_dateOrder AS "part_dateOrder", part_dateReceive AS "part_dateReceive",
+  part_name, part_num, part_vendor, part_price, part_status`;
+
 async function listParts({ cltId, statusId } = {}) {
   const r = await pool.query(
     `SELECT p.part_id, p.part_name, p.part_num, p.part_price,
@@ -28,7 +36,7 @@ async function listParts({ cltId, statusId } = {}) {
 async function updatePartStatus(partId, statusId, receiveDate) {
   const r = await pool.query(
     `UPDATE parts SET part_status=$1, part_dateReceive=$2
-     WHERE part_id=$3 RETURNING *`,
+     WHERE part_id=$3 RETURNING ${PARTS_COLS}`,
     [statusId, receiveDate || null, partId]
   );
   return r.rows[0];
