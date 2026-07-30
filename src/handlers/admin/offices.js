@@ -74,25 +74,33 @@ async function listSubOffices() {
   return r.rows;
 }
 
+// Only one sub-office may be flagged "same as main" at a time — enforced here
+// regardless of what the UI sends, in case the checkbox guard is ever bypassed.
 async function createSubOffice(data) {
+  if (data.sub_pref_sameAsMain) {
+    await pool.query('UPDATE sub_office SET sub_pref_sameAsMain = FALSE');
+  }
   const r = await pool.query(
     `INSERT INTO sub_office
-       (sub_name, sub_address, sub_phone, sub_800, sub_busHrs, sub_siteurl, sub_zone)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
+       (sub_name, sub_address, sub_phone, sub_800, sub_busHrs, sub_siteurl, sub_zone, sub_pref_sameAsMain)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
     [data.sub_name, JSON.stringify(data.sub_address || {}), data.sub_phone, data.sub_800,
-     data.sub_busHrs || 'Mon-Fri 8:00-17:00', data.sub_siteurl, data.sub_zone]
+     data.sub_busHrs || 'Mon-Fri 8:00-17:00', data.sub_siteurl, data.sub_zone, !!data.sub_pref_sameAsMain]
   );
   return r.rows[0];
 }
 
 async function updateSubOffice(id, data) {
+  if (data.sub_pref_sameAsMain) {
+    await pool.query('UPDATE sub_office SET sub_pref_sameAsMain = FALSE WHERE sub_id != $1', [id]);
+  }
   const r = await pool.query(
     `UPDATE sub_office
      SET sub_name=$1, sub_address=$2, sub_phone=$3, sub_800=$4, sub_busHrs=$5,
-         sub_siteurl=$6, sub_zone=$7
-     WHERE sub_id=$8 RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
+         sub_siteurl=$6, sub_zone=$7, sub_pref_sameAsMain=$8
+     WHERE sub_id=$9 RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
     [data.sub_name, JSON.stringify(data.sub_address || {}), data.sub_phone, data.sub_800,
-     data.sub_busHrs, data.sub_siteurl, data.sub_zone, id]
+     data.sub_busHrs, data.sub_siteurl, data.sub_zone, !!data.sub_pref_sameAsMain, id]
   );
   return r.rows[0];
 }
