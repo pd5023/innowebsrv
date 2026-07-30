@@ -6,7 +6,7 @@ async function listClientDepts(cltId) {
             cd.cltDept_dept AS "cltDept_dept", cd.cltDept_alias AS "cltDept_alias",
             d.dept_name
      FROM client_depts cd
-     JOIN departments d ON d.dept_id = cd.cltDept_dept
+     LEFT JOIN departments d ON d.dept_id = cd.cltDept_dept
      WHERE cd.cltDept_cltId = $1
      ORDER BY cd.cltDept_alias`,
     [cltId]

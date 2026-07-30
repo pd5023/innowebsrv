@@ -39,10 +39,10 @@ async function listEquipment(cltId, auth) {
             c.clt_name, cd.cltDept_alias AS dept_name,
             m.mod_name AS modal_name, mk.make_name
      FROM equipments e
-     JOIN clients      c  ON c.clt_id     = e.eqp_cltId
-     JOIN client_depts cd ON cd.cltDept_id = e.eqp_deptId
-     JOIN modalities   m  ON m.mod_id     = e.eqp_modalId
-     JOIN makes        mk ON mk.make_id   = e.eqp_makeId
+     JOIN clients           c  ON c.clt_id      = e.eqp_cltId
+     LEFT JOIN client_depts cd ON cd.cltDept_id = e.eqp_deptId
+     LEFT JOIN modalities   m  ON m.mod_id      = e.eqp_modalId
+     LEFT JOIN makes        mk ON mk.make_id    = e.eqp_makeId
      WHERE ${filters.join(' AND ')}
      ORDER BY c.clt_name, cd.cltDept_alias, e.eqp_alias`,
     params
@@ -60,10 +60,10 @@ async function getEquipment(id) {
             c.clt_name, cd.cltDept_alias AS dept_name,
             m.mod_name AS modal_name, mk.make_name
      FROM equipments e
-     JOIN clients      c  ON c.clt_id     = e.eqp_cltId
-     JOIN client_depts cd ON cd.cltDept_id = e.eqp_deptId
-     JOIN modalities   m  ON m.mod_id     = e.eqp_modalId
-     JOIN makes        mk ON mk.make_id   = e.eqp_makeId
+     JOIN clients           c  ON c.clt_id      = e.eqp_cltId
+     LEFT JOIN client_depts cd ON cd.cltDept_id = e.eqp_deptId
+     LEFT JOIN modalities   m  ON m.mod_id      = e.eqp_modalId
+     LEFT JOIN makes        mk ON mk.make_id    = e.eqp_makeId
      WHERE e.eqp_id = $1`,
     [id]
   );
