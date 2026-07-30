@@ -1,7 +1,25 @@
 const pool = require('../../db/pool');
 
+// Postgres folds unquoted mixed-case identifiers to lowercase, so SELECT * / RETURNING *
+// on columns like busHrs comes back as `bushrs`, breaking JS code that expects `busHrs`.
+// Alias every mixed-case column explicitly so the driver returns the exact key we expect.
+const MAIN_OFFICE_COLS = `id, name, address, main_phone, main_800,
+  busHrs AS "busHrs", siteurl, zone, pref_hrtick,
+  pref_allowSRbill AS "pref_allowSRbill",
+  pref_flexSRtime AS "pref_flexSRtime",
+  pref_reqGeoLoc AS "pref_reqGeoLoc"`;
+
+const SUB_OFFICE_COLS = `so.sub_id, so.sub_name, so.sub_address, so.sub_phone, so.sub_800,
+  so.sub_busHrs AS "sub_busHrs", so.sub_siteurl,
+  so.sub_mainId AS "sub_mainId", so.sub_zone,
+  so.sub_pref_sameAsMain AS "sub_pref_sameAsMain",
+  so.sub_pref_hrtick,
+  so.sub_pref_allowSRbill AS "sub_pref_allowSRbill",
+  so.sub_pref_flexSRtime AS "sub_pref_flexSRtime",
+  so.sub_pref_reqGeoLoc AS "sub_pref_reqGeoLoc"`;
+
 async function getMainOffice() {
-  const r = await pool.query('SELECT * FROM main_office ORDER BY id LIMIT 1');
+  const r = await pool.query(`SELECT ${MAIN_OFFICE_COLS} FROM main_office ORDER BY id LIMIT 1`);
   return r.rows[0];
 }
 
@@ -10,7 +28,7 @@ async function updateMainOffice(id, data) {
     `UPDATE main_office
      SET name=$1, address=$2, main_phone=$3, main_800=$4, busHrs=$5, siteurl=$6,
          zone=$7, pref_hrtick=$8, pref_allowSRbill=$9, pref_flexSRtime=$10, pref_reqGeoLoc=$11
-     WHERE id=$12 RETURNING *`,
+     WHERE id=$12 RETURNING ${MAIN_OFFICE_COLS}`,
     [data.name, JSON.stringify(data.address || {}), data.main_phone, data.main_800,
      data.busHrs, data.siteurl, data.zone || 1, data.pref_hrtick || 15,
      !!data.pref_allowSRbill, !!data.pref_flexSRtime, !!data.pref_reqGeoLoc, id]
@@ -48,7 +66,7 @@ async function deleteZone(id) {
 
 async function listSubOffices() {
   const r = await pool.query(
-    `SELECT so.*, z.zone_name
+    `SELECT ${SUB_OFFICE_COLS}, z.zone_name
      FROM sub_office so
      LEFT JOIN zones z ON z.zone_id = so.sub_zone
      ORDER BY so.sub_name`
@@ -60,7 +78,7 @@ async function createSubOffice(data) {
   const r = await pool.query(
     `INSERT INTO sub_office
        (sub_name, sub_address, sub_phone, sub_800, sub_busHrs, sub_siteurl, sub_zone)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
     [data.sub_name, JSON.stringify(data.sub_address || {}), data.sub_phone, data.sub_800,
      data.sub_busHrs || 'Mon-Fri 8:00-17:00', data.sub_siteurl, data.sub_zone]
   );
@@ -72,7 +90,7 @@ async function updateSubOffice(id, data) {
     `UPDATE sub_office
      SET sub_name=$1, sub_address=$2, sub_phone=$3, sub_800=$4, sub_busHrs=$5,
          sub_siteurl=$6, sub_zone=$7
-     WHERE sub_id=$8 RETURNING *`,
+     WHERE sub_id=$8 RETURNING ${SUB_OFFICE_COLS.replace(/so\./g, '')}`,
     [data.sub_name, JSON.stringify(data.sub_address || {}), data.sub_phone, data.sub_800,
      data.sub_busHrs, data.sub_siteurl, data.sub_zone, id]
   );
