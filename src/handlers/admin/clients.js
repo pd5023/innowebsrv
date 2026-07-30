@@ -51,14 +51,4 @@ async function deleteClient(id) {
   return { deleted: true };
 }
 
-async function listZones() {
-  const r = await pool.query('SELECT zone_id, zone_name FROM zones ORDER BY zone_name');
-  return r.rows;
-}
-
-async function listSubOffices() {
-  const r = await pool.query('SELECT sub_id, sub_name FROM sub_office ORDER BY sub_name');
-  return r.rows;
-}
-
-module.exports = { listClients, getClient, createClient, updateClient, deleteClient, listZones, listSubOffices };
+module.exports = { listClients, getClient, createClient, updateClient, deleteClient };

@@ -21,7 +21,7 @@ const ROLES = {
     scope: SCOPE.GLOBAL,
     perms: {
       clients: CRUD, depts: CRUD, clientContacts: CRUD, employees: CRUD,
-      equipment: CRUD, subEquipment: CRUD, contracts: CRUD,
+      equipment: CRUD, subEquipment: CRUD, contracts: CRUD, offices: CRUD,
     },
   },
   Contracts: {

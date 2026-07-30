@@ -8,6 +8,7 @@ const tickets    = require('../../handlers/admin/tickets_admin');
 const equipment  = require('../../handlers/admin/equipment_admin');
 const reports    = require('../../handlers/admin/reports_admin');
 const parts      = require('../../handlers/admin/parts_admin');
+const offices    = require('../../handlers/admin/offices');
 const auth       = require('../../handlers/admin/login');
 const requirePermission = require('../../policy/requirePermission');
 
@@ -44,8 +45,8 @@ router.get('/clients/:id',      requirePermission('clients', 'read'),   async (r
 router.post('/clients',         requirePermission('clients', 'create'), async (req, res) => { try { res.json(await clients.createClient(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.put('/clients/:id',      requirePermission('clients', 'update'), async (req, res) => { try { res.json(await clients.updateClient(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.delete('/clients/:id',   requirePermission('clients', 'delete'), async (req, res) => { try { res.json(await clients.deleteClient(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.get('/zones',            async (req, res) => { try { res.json(await clients.listZones()); } catch (e) { res.status(500).json({ error: e.message }); } });
-router.get('/suboffices',       async (req, res) => { try { res.json(await clients.listSubOffices()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/zones',             async (req, res) => { try { res.json(await offices.listZones()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/suboffices',        async (req, res) => { try { res.json(await offices.listSubOffices()); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 // ── Employees (Admin only, per policy matrix) ──────────────────────────────────
 router.get('/employees',        requirePermission('employees', 'read'),   async (req, res) => { try { res.json(await employees.listEmployees()); } catch (e) { res.status(500).json({ error: e.message }); } });
@@ -73,5 +74,17 @@ router.get('/reports/:id',      async (req, res) => { try { res.json(await repor
 // ── Parts Orders ──────────────────────────────────────────────────────────────
 router.get('/parts',            async (req, res) => { try { res.json(await parts.listParts(req.query)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.put('/parts/:id/status', async (req, res) => { try { const { statusId, receiveDate } = req.body; res.json(await parts.updatePartStatus(req.params.id, statusId, receiveDate)); } catch (e) { res.status(500).json({ error: e.message }); } });
+
+// ── Offices (Main Office, Zones, Sub-Offices — Admin only) ─────────────────────
+router.get('/main-office',      requirePermission('offices', 'read'),   async (req, res) => { try { res.json(await offices.getMainOffice()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/main-office/:id',  requirePermission('offices', 'update'), async (req, res) => { try { res.json(await offices.updateMainOffice(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+
+router.post('/zones',           requirePermission('offices', 'create'), async (req, res) => { try { res.json(await offices.createZone(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/zones/:id',        requirePermission('offices', 'update'), async (req, res) => { try { res.json(await offices.updateZone(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.delete('/zones/:id',     requirePermission('offices', 'delete'), async (req, res) => { try { res.json(await offices.deleteZone(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+
+router.post('/suboffices',      requirePermission('offices', 'create'), async (req, res) => { try { res.json(await offices.createSubOffice(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/suboffices/:id',   requirePermission('offices', 'update'), async (req, res) => { try { res.json(await offices.updateSubOffice(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.delete('/suboffices/:id',requirePermission('offices', 'delete'), async (req, res) => { try { res.json(await offices.deleteSubOffice(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 module.exports = router;
