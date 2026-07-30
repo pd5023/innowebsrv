@@ -50,6 +50,11 @@ CREATE TABLE IF NOT EXISTS cnt_role (
   role_name VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS empl_role (
+  role_id   SERIAL PRIMARY KEY,
+  role_name VARCHAR(50) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS modalities (
   mod_id   SERIAL PRIMARY KEY,
   mod_name VARCHAR(50) NOT NULL
