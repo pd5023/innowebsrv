@@ -21,7 +21,7 @@ async function getHistory(emplId) {
 async function getEquipHistory(eqpId) {
   const res = await pool.query(
     `SELECT sr.sr_id, t.tkt_id AS "tkt_ID", t.tkt_date,
-            t.tkt_shrtDesc, sr.sr_date AS "sDate", sr.sr_desc AS "sDesc",
+            t.tkt_shrtDesc AS "tkt_shrtDesc", sr.sr_date AS "sDate", sr.sr_desc AS "sDesc",
             t.tkt_status AS "tkt_type",
             emp.empl_name AS "NAME"
      FROM SR sr

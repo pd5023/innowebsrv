@@ -4,8 +4,8 @@ async function getSrDetails(tktId, eqpId) {
   const [rateRes, contractRes, emplRes, partsRes, subEqpRes, lastSrRes] = await Promise.all([
     pool.query('SELECT rate_id, rate_detail FROM labor_rates ORDER BY rate_effDate DESC LIMIT 1'),
     pool.query(
-      `SELECT cm.contract_id, cm.contract_name, cm.contract_endDate,
-              ce.contEqp_coverage
+      `SELECT cm.contract_id, cm.contract_name, cm.contract_endDate AS "contract_endDate",
+              ce.contEqp_coverage AS "contEqp_coverage"
        FROM contracts_main cm
        JOIN contracts_dept  cd ON cd.contDept_contractId = cm.contract_id
        JOIN contracts_equip ce ON ce.contEqp_deptId = cd.contDept_id
@@ -24,12 +24,13 @@ async function getSrDetails(tktId, eqpId) {
       [tktId]
     ),
     pool.query(
-      `SELECT subeqp_id, subeqp_model, subeqp_serial, subeqp_isActive
+      `SELECT subeqp_id, subeqp_model, subeqp_serial, subeqp_isActive AS "subeqp_isActive"
        FROM sub_equipment WHERE subeqp_eqpId = $1`,
       [eqpId]
     ),
     pool.query(
-      `SELECT sr_id, sr_date, sr_hrs, sr_desc, sr_status, sr_signName, sr_hasPics
+      `SELECT sr_id, sr_date, sr_hrs, sr_desc, sr_status,
+              sr_signName AS "sr_signName", sr_hasPics AS "sr_hasPics"
        FROM SR WHERE sr_tktId = $1 ORDER BY sr_date DESC LIMIT 1`,
       [tktId]
     ),

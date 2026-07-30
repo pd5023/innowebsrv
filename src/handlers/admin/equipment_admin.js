@@ -1,6 +1,17 @@
 const pool = require('../../db/pool');
 const { SCOPE, scopeOf } = require('../../policy/policy');
 
+// Postgres folds unquoted mixed-case identifiers to lowercase, so SELECT * / RETURNING *
+// on columns like eqp_roomAlias comes back as `eqp_roomalias`, breaking JS code that expects
+// `eqp_roomAlias`. Alias every mixed-case column explicitly so the driver returns the exact
+// key we expect.
+const EQUIPMENT_COLS = `eqp_id, eqp_cltId AS "eqp_cltId", eqp_deptId AS "eqp_deptId",
+  eqp_modalId AS "eqp_modalId", eqp_makeId AS "eqp_makeId",
+  eqp_alias, eqp_model, eqp_serial, eqp_barcode,
+  eqp_roomAlias AS "eqp_roomAlias", eqp_isActive AS "eqp_isActive",
+  eqp_emails, eqp_isContract AS "eqp_isContract",
+  eqp_srvcBy AS "eqp_srvcBy", eqp_vendor`;
+
 async function listEquipment(cltId, auth) {
   const filters = ['($1::int IS NULL OR e.eqp_cltId = $1)'];
   const params  = [cltId || null];
@@ -23,7 +34,8 @@ async function listEquipment(cltId, auth) {
 
   const r = await pool.query(
     `SELECT e.eqp_id, e.eqp_alias, e.eqp_model, e.eqp_serial, e.eqp_barcode,
-            e.eqp_roomAlias, e.eqp_isActive, e.eqp_isContract,
+            e.eqp_roomAlias AS "eqp_roomAlias", e.eqp_isActive AS "eqp_isActive",
+            e.eqp_isContract AS "eqp_isContract",
             c.clt_name, cd.cltDept_alias AS dept_name,
             m.mod_name AS modal_name, mk.make_name
      FROM equipments e
@@ -44,7 +56,7 @@ async function createEquipment(data) {
        (eqp_cltId, eqp_deptId, eqp_modalId, eqp_makeId,
         eqp_alias, eqp_model, eqp_serial, eqp_barcode,
         eqp_roomAlias, eqp_isContract, eqp_srvcBy)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING ${EQUIPMENT_COLS}`,
     [data.eqp_cltId, data.eqp_deptId, data.eqp_modalId, data.eqp_makeId,
      data.eqp_alias, data.eqp_model, data.eqp_serial, data.eqp_barcode,
      data.eqp_roomAlias, data.eqp_isContract || false, data.eqp_srvcBy || 1]
@@ -58,7 +70,7 @@ async function updateEquipment(id, data) {
      SET eqp_deptId=$1, eqp_modalId=$2, eqp_makeId=$3,
          eqp_alias=$4, eqp_model=$5, eqp_serial=$6, eqp_barcode=$7,
          eqp_isActive=$8, eqp_roomAlias=$9, eqp_isContract=$10
-     WHERE eqp_id=$11 RETURNING *`,
+     WHERE eqp_id=$11 RETURNING ${EQUIPMENT_COLS}`,
     [data.eqp_deptId, data.eqp_modalId, data.eqp_makeId,
      data.eqp_alias, data.eqp_model, data.eqp_serial, data.eqp_barcode,
      data.eqp_isActive !== false, data.eqp_roomAlias, data.eqp_isContract || false, id]
@@ -73,7 +85,7 @@ async function listDepartments() {
 
 async function listClientDepts(cltId) {
   const r = await pool.query(
-    `SELECT cd.cltDept_id, cd.cltDept_alias, d.dept_name
+    `SELECT cd.cltDept_id, cd.cltDept_alias AS "cltDept_alias", d.dept_name
      FROM client_depts cd
      JOIN departments d ON d.dept_id = cd.cltDept_dept
      WHERE cd.cltDept_cltId = $1

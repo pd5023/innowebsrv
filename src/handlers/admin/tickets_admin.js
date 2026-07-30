@@ -2,11 +2,11 @@ const pool = require('../../db/pool');
 
 async function listTickets({ status, cltId, assigned } = {}) {
   const r = await pool.query(
-    `SELECT t.tkt_id, t.tkt_date, t.tkt_shrtDesc, t.tkt_status,
+    `SELECT t.tkt_id, t.tkt_date, t.tkt_shrtDesc AS "tkt_shrtDesc", t.tkt_status,
             c.clt_name, e.eqp_alias, e.eqp_model,
             emp.empl_name AS assigned_name,
             ts.tkt_statName AS status_name,
-            t.tkt_hasPics
+            t.tkt_hasPics AS "tkt_hasPics"
      FROM tickets t
      JOIN clients    c   ON c.clt_id   = t.tkt_cltId
      JOIN equipments e   ON e.eqp_id   = t.tkt_eqpId

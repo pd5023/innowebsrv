@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 
 async function getTickets(zone, emplId, laborTypeId) {
   const res = await pool.query(
-    `SELECT t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrtDesc, t.tkt_desc,
+    `SELECT t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrtDesc AS "tkt_shrtDesc", t.tkt_desc,
             t.tkt_po AS "tkt_PO", t.tkt_assigned, t.tkt_hasPics AS pics,
             c.clt_name,
             e.eqp_id AS "eqp_ID", e.eqp_alias, e.eqp_model,
@@ -45,7 +45,7 @@ async function createTicket(eqpId, laborTypeId, desc, assignedEmplId) {
 
 async function getVoidedTickets() {
   const res = await pool.query(
-    `SELECT t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrtDesc,
+    `SELECT t.tkt_id AS "tkt_ID", t.tkt_date, t.tkt_shrtDesc AS "tkt_shrtDesc",
             c.clt_name, cd.cltDept_alias AS dept_name,
             m.mod_name AS modal_name, e.eqp_alias
      FROM tickets t
