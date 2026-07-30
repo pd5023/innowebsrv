@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS employees (
   empl_password   VARCHAR(200) NOT NULL,
   empl_clientPrim TEXT,
   empl_clientSec  TEXT,
-  empl_cats       JSONB,
+  empl_modals     TEXT,
   empl_role       TEXT,
   empl_isActive   BOOLEAN DEFAULT TRUE
 );

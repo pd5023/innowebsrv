@@ -90,10 +90,10 @@ VALUES (1, 1, 1, 'Jane Contact', 'jane@example.com', '(555) 200-5678', 1)
 ON CONFLICT (cnt_id) DO NOTHING;
 
 -- bcrypt hash of 'Password1'
-INSERT INTO employees (empl_id, empl_subId, empl_name, empl_email, empl_phone, empl_username, empl_password, empl_clientPrim, empl_cats, empl_role, empl_isActive)
+INSERT INTO employees (empl_id, empl_subId, empl_name, empl_email, empl_phone, empl_username, empl_password, empl_clientPrim, empl_modals, empl_role, empl_isActive)
 VALUES (1, 1, 'John Doe', 'john@example.com', '(555) 100-1234', 'john',
         '$2b$10$9sPJaJf4nkFVDXOJFQ5q8OGG.7IHKl1w2sCbVRbFSgxfT8d1W0K7.',
-        '1', '[1,2,3]', 'admin', TRUE)
+        '1', '1,2,3', 'admin', TRUE)
 ON CONFLICT (empl_id) DO NOTHING;
 
 INSERT INTO equipments (eqp_id, eqp_cltId, eqp_deptId, eqp_modalId, eqp_makeId, eqp_alias, eqp_model, eqp_serial, eqp_barcode)

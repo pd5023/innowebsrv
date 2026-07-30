@@ -10,7 +10,7 @@ async function login(username, password) {
     `SELECT e.empl_id, e.empl_name, e.empl_password,
             e.empl_clientPrim AS "empl_clientPrim",
             e.empl_role, e.empl_isActive AS "empl_isActive",
-            e.empl_subId AS "empl_subId", e.empl_cats,
+            e.empl_subId AS "empl_subId", e.empl_modals,
             so.sub_zone
      FROM employees e
      LEFT JOIN sub_office so ON so.sub_id = e.empl_subId
@@ -33,7 +33,7 @@ async function login(username, password) {
     role:       user.empl_role,
     subId:      user.empl_subId,
     zone:       user.sub_zone,
-    modalities: user.empl_cats ?? [],
+    modalities: (user.empl_modals || '').split(',').map(Number).filter(Boolean),
     clt_id:     cltId,
   };
 
