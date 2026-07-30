@@ -9,6 +9,7 @@ const equipment  = require('../../handlers/admin/equipment_admin');
 const reports    = require('../../handlers/admin/reports_admin');
 const parts      = require('../../handlers/admin/parts_admin');
 const offices    = require('../../handlers/admin/offices');
+const authGrid   = require('../../handlers/admin/authGrid');
 const auth       = require('../../handlers/admin/login');
 const requirePermission = require('../../policy/requirePermission');
 
@@ -86,5 +87,11 @@ router.delete('/zones/:id',     requirePermission('offices', 'delete'), async (r
 router.post('/suboffices',      requirePermission('offices', 'create'), async (req, res) => { try { res.json(await offices.createSubOffice(req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.put('/suboffices/:id',   requirePermission('offices', 'update'), async (req, res) => { try { res.json(await offices.updateSubOffice(req.params.id, req.body)); } catch (e) { res.status(500).json({ error: e.message }); } });
 router.delete('/suboffices/:id',requirePermission('offices', 'delete'), async (req, res) => { try { res.json(await offices.deleteSubOffice(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); } });
+
+// ── Auth Grid (title -> permission tier mapping — Admin only) ──────────────────
+router.get('/empl-roles',          requirePermission('permissions', 'read'),   async (req, res) => { try { res.json(await authGrid.listEmplRoles()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/role-auth-tiers',     requirePermission('permissions', 'read'),   async (req, res) => { try { res.json(await authGrid.listRoleAuthTiers()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.get('/empl-role-auth-map',  requirePermission('permissions', 'read'),   async (req, res) => { try { res.json(await authGrid.getEmplRoleAuthMap()); } catch (e) { res.status(500).json({ error: e.message }); } });
+router.put('/empl-role-auth-map/:roleId', requirePermission('permissions', 'update'), async (req, res) => { try { res.json(await authGrid.setEmplRoleAuth(req.params.roleId, req.body.auth_id)); } catch (e) { res.status(500).json({ error: e.message }); } });
 
 module.exports = router;

@@ -22,6 +22,7 @@ const ROLES = {
     perms: {
       clients: CRUD, depts: CRUD, clientContacts: CRUD, employees: CRUD,
       equipment: CRUD, subEquipment: CRUD, contracts: CRUD, offices: CRUD,
+      permissions: CRUD,
     },
   },
   Contracts: {

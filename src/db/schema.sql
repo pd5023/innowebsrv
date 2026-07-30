@@ -183,7 +183,16 @@ CREATE TABLE IF NOT EXISTS employees (
   empl_clientSec  TEXT,
   empl_modals     TEXT,
   empl_role       TEXT,
+  empl_titleId    INT REFERENCES empl_role(role_id),
   empl_isActive   BOOLEAN DEFAULT TRUE
+);
+
+-- Maps each job title (empl_role) to the permission tier (role_auth) it grants.
+-- Admin-editable via the Auth Grid screen — lets titles be reassigned to a
+-- different tier for everyone holding that title, without editing each employee.
+CREATE TABLE IF NOT EXISTS empl_role_auth (
+  role_id INT PRIMARY KEY REFERENCES empl_role(role_id),
+  auth_id INT NOT NULL REFERENCES role_auth(auth_id)
 );
 
 CREATE TABLE IF NOT EXISTS equipments (
