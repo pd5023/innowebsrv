@@ -33,7 +33,9 @@ async function listEquipment(cltId, auth) {
   }
 
   const r = await pool.query(
-    `SELECT e.eqp_id, e.eqp_alias, e.eqp_model, e.eqp_serial, e.eqp_barcode,
+    `SELECT e.eqp_id, e.eqp_cltId AS "eqp_cltId", e.eqp_deptId AS "eqp_deptId",
+            e.eqp_modalId AS "eqp_modalId", e.eqp_makeId AS "eqp_makeId",
+            e.eqp_alias, e.eqp_model, e.eqp_serial, e.eqp_barcode,
             e.eqp_roomAlias AS "eqp_roomAlias", e.eqp_isActive AS "eqp_isActive",
             e.eqp_isContract AS "eqp_isContract",
             c.clt_name, cd.cltDept_alias AS dept_name,
